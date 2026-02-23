@@ -1,0 +1,62 @@
+---
+title: "Assignment 1"
+author: "Zakari L. Billo"
+date: "Febrauary 23, 2026"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(designmatch)
+library(SuperLearner)
+library(tmle)
+library(kableExtra)
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  fig.width = 8,
+  fig.height = 7,
+  fig.align = "center",
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+# Introduction
+
+# Research Question
+
+# Data 
+
+```{r}
+data(lalonde)
+
+
+```
+
+# Causal Estimand and Identification 
+
+# Estimating the Causal Effect
+
+We apply the three estimators discussed in class to determine the $\hat{ATE}$: g-computation (standardization), augmented inverse-propensity of treatment weights (AIPTW), and targeted maximum likelihood estimation with Ensemble SuperLearner (TMLE). 
+
+# Comparing Approaches
+
+# Conclusion
+
+## References:
+
+Dehejia, R., and Wahba, S. (1999), "Causal Effects in Nonexperimental Studies: Reevaluating the Evaluation of Training Programs," Journal of the American Statistical Association, 94, 1053-1062.
+
+Laan, M. J. van der, Polley, E. C., & Hubbard, A. E. (2007). Super Learner. Statistical Applications in Genetics and Molecular Biology, 6(1). https://doi.org/10.2202/1544-6115.1309
+
+Lalonde, R. (1986), "Evaluating the Econometric Evaluations of Training Programs," American Economic Review, 76, 604-620.
+
