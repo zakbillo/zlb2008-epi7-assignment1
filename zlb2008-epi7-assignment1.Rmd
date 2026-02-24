@@ -32,18 +32,18 @@ scale_fill_discrete = scale_fill_viridis_d
 
 # Introduction
 
-National Supported Work (NSW) Demonstration was a subsidized job training program spanning 1974 to 1979 designed to help disadvantaged workers including long-term AFDC (welfare) recipients, ex-addicts, ex-offenders, and young school dropouts secure stable employment (Manpower Demonstration Research Corporation, 1983). Historically, econometric evaluations of such programs faced immense confounding and consequently produced unreliable causal inferences. This paper attempts to estimate the effect of program enrollment on real trainee earnings where participants were randomly assigned to treatment (job training) and control groups (no training). By applying the Causal Roadmap to the classic LaLonde dataset (1986), we can follow the Causal Roadmap to define our assumptions and compare three statistical estimators: G-computation (standardization), Augmented Inverse Probability of Treatment Weighting (IPTW), and Targeted Maximum Likelihood Estimation (TMLE) with Ensemble SuperLearner (SL). More information on the LaLonde dataset can be found in the documentation for the R package ‘designmatch'.
+National Supported Work (NSW) Demonstration was a subsidized job training program spanning 1974 to 1979 designed to help disadvantaged workers including long-term AFDC (welfare) recipients, ex-addicts, ex-offenders, and young school dropouts secure stable employment (Manpower Demonstration Research Corporation, 1983). Historically, econometric evaluations of such programs faced immense confounding and consequently produced unreliable causal inferences. This paper attempts to estimate the effect of program enrollment on real trainee earnings where participants were randomly assigned to treatment (job training) and control groups (no training). By applying the Causal Roadmap to the classic LaLonde dataset (1986), we can follow the Causal Roadmap to define our assumptions and compare three statistical estimators: G-computation (standardization), Augmented Inverse Probability of Treatment Weighting (AIPTW), and Targeted Maximum Likelihood Estimation (TMLE) with Ensemble SuperLearner (SL). More information on the LaLonde dataset can be found in the documentation for the R package ‘designmatch'.
 
 # Research Question
 
-We are interested in knowing to what extent participation in the NSW Demonstration program affects future income. In causal phrasing: if all eligible individuals were assigned to the NSW Demonstration training program, what would their expected real earnings in 1978 be compared to if, perhaps contrary to reality, none of them were assigned to the program?
+We are interested in knowing to what extent participation in the NSW Demonstration program affects future income. In causal phrasing: if all Black eligible individuals were assigned to the NSW Demonstration training program, what would their expected real earnings in 1978 be compared to if, perhaps contrary to reality, none of them were assigned to the program?
 
 # Data 
 To answer this question, we observe the data structure $O=(W,A,Y)$ for $n$ independent and identically distributed individuals.
 
 \begin{itemize}
 
-\item $W$ is a set of 8 baseline covariates that could confound the effect of $A$ on $Y$: age, years of education, indicators for Black and Hispanic race, marital status, absence of a high school degree, and real earnings in 1974 and 1975. The specified categorical variables in this dataset have been factored for analysis.
+\item $W$ is a set of 6 baseline covariates that could confound the effect of $A$ on $Y$: age, years of education, marital status, absence of a high school degree, and real earnings in 1974 and 1975. 
 
 \item $A \in \{0,1\}$ is the binary intervention. $A=1$ if the individual received the job training, and $A=0$ otherwise.
 
@@ -51,63 +51,62 @@ To answer this question, we observe the data structure $O=(W,A,Y)$ for $n$ indep
 
 \end{itemize}
 
-Our sample is comprised of 445 participants, corresponding to 185 treated and 260 control subjects, and 10 the aforementioned variables. 
+Our sample is comprised of 243 Black individuals, corresponding to 156 treated and 87 control subjects, and 10 the aforementioned variables. 
 
 ```{r}
 data(lalonde)
 
-# Let's make sure the binary variables are coded correctly 
-cat_vars <- c("black", "hispanic", "married", "nodegree")
-lalonde[cat_vars] <- lapply(lalonde[cat_vars], function(x) {
- factor(x, 
-        levels = c(0, 1),
-        labels = c("No", "Yes"))
-})
+lalonde <- subset(lalonde, black == 1) # Only Black people for the CATE
+
+summary(lalonde) # Everything looks good, no missingness
+
+lalonde <- lalonde |>
+  select(-hispanic, -black)
 
 summary(lalonde) # Everything looks good, no missingness
 
 # Define Covariates (W), Treatment (A), and Outcome (Y)
-W <- lalonde[, c("age", "education", "black", "hispanic", "married", "nodegree", "re74", "re75")]
+W <- lalonde[, c("age", "education", 
+                 "married", "nodegree", "re74", "re75")]
 A <- lalonde$treatment # 1 = treated; 0 = control
 Y <- lalonde$re78 # 1978 earnings 
 ```
 
 # Causal Estimand and Identification 
 
-Our target parameter is the Average Treatment Effect (ATE), defined on the counterfactual outcomes as $\mathbb{E}[Y^{a=1} - Y^{a=0}]$. This represents the difference in expected 1978 earnings where $Y^{1}$ is the counterfactual outcome if one, perhaps contrary to reality, recieved job training through NSW and $Y^{0}$ is the counterfactual outcome if one, perhaps contrary to reality, did not receive job training (control). 
+Our target parameter is the Conditional Average Treatment Effect (CATE), defined on the counterfactual outcomes as $\mathbb{E}[Y^{a=1} - Y^{a=0}|Black=1]$. This represents the difference in expected 1978 earnings among Black people where $Y^{1}|Black=1$ is the counterfactual outcome if one, perhaps contrary to reality, recieved job training through NSW and $Y^{0}|Black=1$ is the counterfactual outcome if one, perhaps contrary to reality, did not receive job training (control). 
 
-To identify the causal ATE from our observational data, we must meet three assumptions: 
-
-\begin{itemize}
-
-\item Consistency: An individual's observed outcome $Y$ when they receive treatment $A=a$ is equal to their counterfactual outcome $Y^a$.
-
-\item Conditional Exchangeability: $Y^a \perp A \mid W$. All common causes of the job training assignment and 1978 earnings are captured in covariate vector $W$.
-
-\item Positivity: $0 < p(A=1 \mid W) < 1$ for all strata of $W$. Every individual must have a non-zero probability of receiving or not receiving the training. 
-
-\end{itemize}
-
-Consider $E[Y^1]$:
+To identify the causal CATE from our observational data, we must meet three assumptions: 
 
 \begin{itemize}
 
-\item $E[Y^1] = E[E[Y^1|W]]$ (by the law of iterated expectations)
-\item $=E[E[Y^1|A = 1,W]]$ (by conditional exchangeability, $Y^a \perp A|W$) 
-\item $= E[E[Y|A = 1,W]]$ (by consistency)
+\item Consistency: An individual's observed outcome $Y|Black=1$ when they receive treatment $A=a$ is equal to their counterfactual outcome $Y^a|Black=1$.
+
+\item Conditional Exchangeability: $Y^a \perp A \mid W, Black = 1$. All common causes of the job training assignment and 1978 earnings are captured in covariate vector $W$.
+
+\item Positivity: $0 < p(A=1 \mid W, Black = 1) < 1$ for all strata of $W$. Every individual must have a non-zero probability of receiving or not receiving the training. 
 
 \end{itemize}
 
-We can replace the 1's with 0's to find $E[Y^0]$. Thus, the causal ATE is identified by the statistical parameter: $$\mathbb{E}_W[\mathbb{E}[Y \mid A=1, W] - \mathbb{E}[Y \mid A=0, W]]$$
+Consider $E[Y^1|Black = 1]$:
 
-# Estimating the Average Treatment Effect
+\begin{itemize}
 
-We apply three estimators discussed in class to determine the $\hat{ATE}$: g-computation (standardization), augmented inverse-propensity of treatment weights (AIPTW), and TMLE with Ensemble SL (van der Laan et al., 2007). AIPTW is doubly-robust, so naturally it should leverage the predicted values from both the outcome model (calculated in the G-computation step) and the propensity score model. Ensemble SL yields flexible estimation of the propensity score and outcome regression, and the doubly-robust TMLE estimator ensures favorable asymptotic properties as long as one of these (propensity score or outcome regression) is correctly specified. Both of these methods are known to be more statistically powerful than G-computation alone. 
+\item $E[Y^1] = E[E[Y^1|W,Black=1]]$ (by the law of iterated expectations)
+\item $=E[E[Y^1|A = 1,W, Black =1]]$ (by conditional exchangeability, $Y^a \perp A|W$) 
+\item $= E[E[Y|A = 1,W, Black =1]]$ (by consistency)
+
+\end{itemize}
+
+We can replace the 1's with 0's to find $E[Y^0|Black=1]$. Thus, the causal ATE is identified by the statistical parameter: $$\mathbb{E}_W[\mathbb{E}[Y \mid A=1, W, Black = 1] - \mathbb{E}[Y \mid A=0, W, Black = 1]]$$
+
+# Estimating the Conditional Average Treatment Effect
+
+We apply three estimators discussed in class to determine the $\hat{CATE}$: g-computation (standardization), augmented inverse-propensity of treatment weights (AIPTW), and TMLE with Ensemble SL (van der Laan et al., 2007). AIPTW is doubly-robust, so naturally it should leverage the predicted values from both the outcome model (calculated in the G-computation step) and the propensity score model. Ensemble SL yields flexible estimation of the propensity score and outcome regression, and the doubly-robust TMLE estimator ensures favorable asymptotic properties as long as one of these (propensity score or outcome regression) is correctly specified. Both of these methods are known to be more statistically powerful than G-computation alone. 
 
 ```{r warning=FALSE, message=FALSE, results='hide'}
 # Fit the outcome model predicting Y from A and W
-gcomp_model <- glm(re78 ~ treatment + age + education + black + hispanic + married + nodegree + re74 + re75, 
-                   data = lalonde, family = gaussian())
+gcomp_model <- glm(re78 ~ treatment + age + education + married + nodegree + re74 + re75, data = lalonde, family = gaussian())
 
 # Create two counterfactual datasets
 data_A1 <- lalonde
@@ -120,14 +119,14 @@ data_A0$treatment <- 0 # All untreated
 QAW_1 <- predict(gcomp_model, newdata = data_A1, type = "response") # All treated counterfactual outcome
 QAW_0 <- predict(gcomp_model, newdata = data_A0, type = "response") # All untreated counterfactual outcome
 
-# Calculate the ATE 
-ate_gcomp <- mean(QAW_1 - QAW_0) # ATE
+# Calculate the CATE 
+cate_gcomp <- mean(QAW_1 - QAW_0) # ATE
 
 # Calculate SE for G-comp using a non-parametric bootstrap (e.g., 200 iterations)
 set.seed(123)
 B <- 200
 n_obs <- nrow(lalonde)
-boot_ates <- numeric(B)
+boot_cates <- numeric(B)
 
 for(i in 1:B) {
   # Sample with replacement
@@ -135,62 +134,63 @@ for(i in 1:B) {
   boot_data <- lalonde[boot_indices, ]
   
   # Refit the model on the bootstrap sample
-  boot_model <- glm(re78 ~ treatment + age + education + black + hispanic + married + nodegree + re74 + re75, 
-                    data = boot_data, family = gaussian())
+  boot_model <- glm(re78 ~ treatment + age + education 
+                    + married + nodegree + re74 + re75, data = boot_data, family = gaussian())
   
   # Create counterfactuals for the bootstrap sample
   boot_A1 <- boot_data; boot_A1$treatment <- 1 # All treated
   boot_A0 <- boot_data; boot_A0$treatment <- 0 # All untreated
   
-  # Predict and calculate the bootstrap RD for get the ATE
+  # Predict and calculate the bootstrap RD for get the CATE
   boot_Q1 <- predict(boot_model, newdata = boot_A1, type = "response")
   boot_Q0 <- predict(boot_model, newdata = boot_A0, type = "response")
-  boot_ates[i] <- mean(boot_Q1 - boot_Q0)
+  boot_cates[i] <- mean(boot_Q1 - boot_Q0)
 }
 
-# The SE is the standard deviation of the bootstrap ATEs
-se_gcomp <- sd(boot_ates) 
+# The SE is the standard deviation of the bootstrap CATEs
+se_gcomp <- sd(boot_cates) 
 
 # CI for G-computation
-lower_gcomp <- ate_gcomp - 1.96 * se_gcomp
-upper_gcomp <- ate_gcomp + 1.96 * se_gcomp
+lower_gcomp <- cate_gcomp - 1.96 * se_gcomp
+upper_gcomp <- cate_gcomp + 1.96 * se_gcomp
 ci_gcomp <- paste0("(", round(lower_gcomp, 2), ", ", round(upper_gcomp, 2), ")")
 
 ### Estimator 2: Augmented Inverse Probability of Treatment Weighting (AIPTW)
 
 # Fit the propensity score model (g-model) 
-ps_model <- glm(treatment ~ age + education + black + hispanic + married + nodegree + re74 + re75, 
+ps_model <- glm(treatment ~ age + education 
+                + married + nodegree + re74 + re75, 
                 data = lalonde, family = binomial())
 
 # Get the predicted probabilities
-g1 <- predict(ps_model, type = "response") 
-g1 <- pmax(0.025, pmin(0.975, g1)) # Predicted probability of being treated for each individual. Truncated due to positivty violations.
+g1 <- predict(ps_model, type = "response") # Predicted probability of being treated for each individual
+g1 <- pmax(0.025, pmin(0.975, g1)) # Truncate for better positivity
 g0 <- 1 - g1 # Predicted probability of being untreated for each individual
 
 # Calculate the AIPTW components for the counterfactual means
 Y1_aiptw <- (lalonde$treatment / g1) * (lalonde$re78 - QAW_1) + QAW_1
 Y0_aiptw <- ((1 - lalonde$treatment) / g0) * (lalonde$re78 - QAW_0) + QAW_0
 
-# Calculate the ATE
-ate_aiptw <- mean(Y1_aiptw - Y0_aiptw)
+# Calculate the CATE
+cate_aiptw <- mean(Y1_aiptw - Y0_aiptw)
 
 # Calculate SE for AIPTW using the variance of the influence curve
-IC_aiptw <- (Y1_aiptw - Y0_aiptw) - ate_aiptw
+IC_aiptw <- (Y1_aiptw - Y0_aiptw) - cate_aiptw
 var_aiptw <- var(IC_aiptw) / n_obs
 se_aiptw <- sqrt(var_aiptw)
 
 # CI for AIPTW
-lower_aiptw <- ate_aiptw - 1.96 * se_aiptw
-upper_aiptw <- ate_aiptw + 1.96 * se_aiptw
+lower_aiptw <- cate_aiptw - 1.96 * se_aiptw
+upper_aiptw <- cate_aiptw + 1.96 * se_aiptw
 ci_aiptw <- paste0("(", round(lower_aiptw, 2), ", ", round(upper_aiptw, 2), ")")
 
 ### Estimator 3: TMLE with Ensemble SuperLearner (SL)
 
 # Reorder the dataset chronologically since LTMLE will get mad at me: Covariates -> Treatment -> Outcome
-lalonde <- lalonde[, c("age", "education", "black", "hispanic", "married", 
+lalonde <- lalonde[, c("age", "education", "married", 
                           "nodegree", "re74", "re75", "treatment", "re78")]
 # Define the SuperLearner library
-sl_lib <- c("SL.glm", "SL.mean", "SL.gam", "SL.earth", "SL.glmnet", "SL.xgboost")
+sl_lib <- c("SL.glm", "SL.mean", "SL.gam", "SL.earth", "SL.xgboost")
 
 # Run TMLE 
 set.seed(123) 
@@ -200,9 +200,9 @@ tmle_fit <- suppressWarnings(suppressMessages(ltmle(lalonde,
                   SL.library = sl_lib, 
                   abar = list(1, 0))))
 
-# Extract the ATE and CI
+# Extract the CATE and CI
 tmle_summary <- summary(tmle_fit)
-ate_tmle <- tmle_summary$effect.measures$ATE$estimate
+cate_tmle <- tmle_summary$effect.measures$ATE$estimate
 tmle_ci_bounds <- tmle_summary$effect.measures$ATE$CI
 ci_tmle <- paste0("(", round(tmle_ci_bounds[1], 2), ", ", round(tmle_ci_bounds[2], 2), ")")
 
@@ -211,7 +211,7 @@ ci_tmle <- paste0("(", round(tmle_ci_bounds[1], 2), ", ", round(tmle_ci_bounds[2
 # Compile all results into a single data frame
 results_df <- data.frame(
   Estimator = c("G-computation", "AIPTW", "TMLE"),
-  ATE = c(ate_gcomp, ate_aiptw, ate_tmle),
+  ACTE = c(cate_gcomp, cate_aiptw, cate_tmle),
   CI = c(ci_gcomp, ci_aiptw, ci_tmle)
 )
 ```
@@ -222,11 +222,12 @@ kable(results_df, format = "latex", digits = 2, caption = "ATE Estimates on LaLo
   kable_styling(bootstrap_options = c("striped", "hold_position"))
 ```
 
-G-computation returns a causal $\hat{ATE}$ of \$1,514.24 (95% CI: 121.56, 2974.85). If unmeasured confounding, conditional exchangeability, consistency and positivity hold, this implies enrollment in the NSW Demonstration increased real earnings in 1978 by \$1,514.24 more than those who weren't enrolled in the program. However, we notice that the both the causal $\hat{ATE}$ of AIPTW and TMLE + SL indicate positive earnings for enrolled participants, but their confidence intervals suggest the difference in real earnings in 1978 is due to chance. 
+G-computation returns a causal $\hat{CATE}$ of \$1371.454 (95% CI: -281.69, 3024.59). If unmeasured confounding, conditional exchangeability, consistency and positivity hold, this implies conditioned on being a Black person, enrollment in the NSW Demonstration increased real earnings in 1978 by \$1,1371.454 more than those who weren't enrolled in the program. However, we notice that the causal $\hat{CATE}$ of AIPTW, \$1417.464
+(95% CI: -408.16, 3243.09), and TMLE + SL, \$873.432 (95% CI: -582.24, 2329.11), indicate positive earnings for enrolled participants, but all confidence intervals suggest the causal difference in real earnings in 1978 among Black people is due to chance. 
 
 # Conclusion
 
-Under the positivity, conditional exchangeability, and positivity assumptions, we were unable to identify the causal $\hat{ATE}$ for the effect of NSW Demonstration enrollment on real earnings in 1978 a small sample of U.S. adults. While G-computation appears to show increases in earnings with program enrollment, both the doubly-robust AIPTW and TMLE + SL etimators suggest this finding is due to chance. This may be due to low predicted treatment probabilities for certain covariate combinations, or the fact that we do not have access to all reasonable confounders of the effect. However, in this short analysis, we found a no significant effect of NSW Demonstration enrollment on real earnings in 1978.
+Under the positivity, conditional exchangeability, and positivity assumptions, we were unable to identify the causal $\hat{CATE}$ for the effect of NSW Demonstration enrollment on real earnings in 1978 a small sample of Black individuals. While G-computation appears to show increases in earnings with program enrollment for Black individuals, both the doubly-robust AIPTW and TMLE + SL etimators suggest this finding is due to chance. This may be due to low predicted treatment probabilities for certain covariate combinations, or the fact that we do not have access to all reasonable confounders of the effect. However, in this short analysis, we found no significant effect of NSW Demonstration enrollment on real earnings in 1978 among Black people.
 
 ## References:
 
