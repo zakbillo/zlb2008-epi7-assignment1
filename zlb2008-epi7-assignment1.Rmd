@@ -13,6 +13,7 @@ library(kableExtra)
 library(tidyverse)
 
 knitr::opts_chunk$set(
+  tidy = TRUE,
   fig.width = 8,
   fig.height = 7,
   fig.align = "center",
@@ -221,8 +222,8 @@ kable(results_df, format = "latex", digits = 2, caption = "ATE Estimates on LaLo
   kable_styling(bootstrap_options = c("striped", "hold_position"))
 ```
 
-G-computation returns a causal $\hat{ATE}$ of \$1371.454 (95% CI: -281.69, 3024.59),
-AIPTW returns a causal $\hat{ATE}$ of \$1417.464 (95% CI: -408.16, 3243.09), and TMLE + SL returns a causal $\hat{ATE}$ of \$873.432 (95% CI: -582.24, 2329.11). 
+G-computation estimates an $\hat{ATE}$ of \$1371.454 (95% CI: -281.69, 3024.59),
+AIPTW estimates an $\hat{ATE}$ of \$1417.464 (95% CI: -408.16, 3243.09), and TMLE + SL estimates an $\hat{ATE}$ of \$873.432 (95% CI: -582.24, 2329.11). 
 
 If unmeasured confounding, marginal exchangeability, consistency and positivity hold, this implies that among Black people, enrollment in the NSW Demonstration increased real earnings in 1978 by more than those who weren't enrolled in the program. 
 
