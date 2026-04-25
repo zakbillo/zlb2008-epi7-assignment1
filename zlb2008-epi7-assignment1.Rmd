@@ -162,9 +162,9 @@ ps_model <- glm(treatment ~ age + education
                 data = lalonde, family = binomial())
 
 # Get the predicted probabilities
-g1 <- predict(ps_model, type = "response") # Predicted probability of being treated for each individual
-g1 <- pmax(0.025, pmin(0.975, g1)) # Trunate for better positivity
-g0 <- 1 - g1 # Predicted probability of being untreated for each individual
+g1 <- predict(ps_model, type = "response") 
+g1 <- pmax(0.025, pmin(0.975, g1)) 
+g0 <- 1 - g1 
 
 # Calculate the AIPTW components for the counterfactual means
 Y1_aiptw <- (lalonde$treatment / g1) * (lalonde$re78 - QAW_1) + QAW_1
@@ -194,8 +194,8 @@ sl_lib <- c("SL.glm", "SL.mean", "SL.gam", "SL.earth", "SL.xgboost")
 # Run TMLE 
 set.seed(123) 
 tmle_fit <- suppressWarnings(suppressMessages(ltmle(lalonde, 
-                  Anodes = "treatment", # Treatment
-                  Ynodes = "re78", # Outcome
+                  Anodes = "treatment",
+                  Ynodes = "re78", 
                   SL.library = sl_lib, 
                   abar = list(1, 0))))
 
@@ -228,7 +228,7 @@ If unmeasured confounding, marginal exchangeability, consistency and positivity 
 
 # Conclusion
 
-Under consistency, marginal exchangeability, and positivity, this study successfully identified the causal $\hat{ATE}$ for the effect of NSW Demonstration enrollment on real earnings in 1978 among a small sample of Black individuals. G-computation, AIPTW, and TMLE + SL appear to show increases in earnings with program enrollment for Black individuals, but this finding may or may not be due to chance. The wide confidence interval may be due to low predicted treatment probabilities for certain covariate combinations, or the fact that we do not have access to unmeasured confounders of the effect.
+Under consistency and positivity, this study successfully identified the causal $\hat{ATE}$ for the effect of NSW Demonstration enrollment on real earnings in 1978 among a small sample of Black individuals. G-computation, AIPTW, and TMLE + SL appear to show increases in earnings with program enrollment for Black individuals, but this finding may or may not be due to chance. The wide confidence interval may be due to low predicted treatment probabilities for certain covariate combinations, or the fact that we do not have access to unmeasured confounders of the effect.
 
 ## References:
 
