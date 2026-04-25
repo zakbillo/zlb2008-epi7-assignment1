@@ -185,7 +185,7 @@ ci_aiptw <- paste0("(", round(lower_aiptw, 2), ", ", round(upper_aiptw, 2), ")")
 
 ### Estimator 3: TMLE with Ensemble SuperLearner (SL)
 
-# Reorder the dataset chronologically since LTMLE will get mad at me: Covariates -> Treatment -> Outcome
+# Reorder: Covariates -> Treatment -> Outcome
 lalonde <- lalonde[, c("age", "education", "married", 
                           "nodegree", "re74", "re75", "treatment", "re78")]
 # Define the SuperLearner library
@@ -224,7 +224,7 @@ kable(results_df, format = "latex", digits = 2, caption = "ATE Estimates on LaLo
 G-computation estimates an $\hat{ATE}$ of \$1371.454 (95% CI: -281.69, 3024.59),
 AIPTW estimates an $\hat{ATE}$ of \$1417.464 (95% CI: -408.16, 3243.09), and TMLE + SL estimates an $\hat{ATE}$ of \$873.432 (95% CI: -582.24, 2329.11). 
 
-If unmeasured confounding, marginal exchangeability, consistency and positivity hold, this implies that among Black people, enrollment in the NSW Demonstration increased real earnings in 1978 by more than those who weren't enrolled in the program. 
+If no unmeasured confounding, consistency and positivity hold, this implies that among Black people, assignment to the NSW Demonstration increased real earnings in 1978 by more than those who weren't assigned to the program. 
 
 # Conclusion
 
