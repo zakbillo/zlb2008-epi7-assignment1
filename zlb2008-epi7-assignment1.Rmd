@@ -13,7 +13,8 @@ library(kableExtra)
 library(tidyverse)
 
 knitr::opts_chunk$set(
-  tidy = TRUE,
+  tidy=TRUE, 
+  tidy.opts=list(width.cutoff=72),
   fig.width = 8,
   fig.height = 7,
   fig.align = "center",
@@ -91,12 +92,12 @@ Consider $E[Y^1|Black=1]$:
 
 \begin{itemize}
 
-\item $= E[Y^1|A = 1,Black =1]]$ (by marginal exchangeability, $Y^a \perp A$) 
-\item $= E[Y|A = 1,Black =1]]$ (by consistency)
+\item $E[Y^1|Black=1] = E[Y^1|A = 1,Black =1]$ (by marginal exchangeability, $Y^a \perp A$) 
+\item $= E[Y|A = 1,Black =1]$ (by consistency)
 
 \end{itemize}
 
-We can replace the 1's with 0's to find $E[Y^0|Black=1]$. Thus, the causal ATE is identified by the statistical estimand: $$\hat{ATE} = \mathbb{E}[Y \mid A=1, Black = 1] - \mathbb{E}[Y \mid A=0, Black = 1]]$$
+We can replace the 1's with 0's to find $E[Y^0|Black=1]$. Thus, the causal ATE is identified by the statistical estimand: $$\hat{ATE} = \mathbb{E}[Y \mid A=1, Black = 1] - \mathbb{E}[Y \mid A=0, Black = 1]$$
 
 # Estimating the Average Treatment Effect
 
@@ -227,7 +228,7 @@ If unmeasured confounding, marginal exchangeability, consistency and positivity 
 
 # Conclusion
 
-Under consistency, marginal exchangeability, and positivity, this study successfuly identified the causal $\hat{ATE}$ for the effect of NSW Demonstration enrollment on real earnings in 1978 among a small sample of Black individuals. G-computation, AIPTW, and TMLE + SL appear to show increases in earnings with program enrollment for Black individuals, but this finding may or may not be due to chance. The wide confidence interval may be due to low predicted treatment probabilities for certain covariate combinations, or the fact that we do not have access to unmeasured confounders of the effect.
+Under consistency, marginal exchangeability, and positivity, this study successfully identified the causal $\hat{ATE}$ for the effect of NSW Demonstration enrollment on real earnings in 1978 among a small sample of Black individuals. G-computation, AIPTW, and TMLE + SL appear to show increases in earnings with program enrollment for Black individuals, but this finding may or may not be due to chance. The wide confidence interval may be due to low predicted treatment probabilities for certain covariate combinations, or the fact that we do not have access to unmeasured confounders of the effect.
 
 ## References:
 
