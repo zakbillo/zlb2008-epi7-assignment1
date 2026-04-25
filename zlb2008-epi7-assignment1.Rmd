@@ -75,17 +75,15 @@ Y <- lalonde$re78 # 1978 earnings
 
 # Causal Estimand and Identification 
 
-Our target parameter is the Average Treatment Effect (ATE), defined under counterfactual outcomes as $\mathbb{E}[Y^{a=1} - Y^{a=0}|Black=1]$. This represents the difference in expected 1978 earnings among Black people where $Y^{1}|Black=1$ is the counterfactual outcome if one, perhaps contrary to reality, recieved job training through NSW and $Y^{0}|Black=1$ is the counterfactual outcome if one, perhaps contrary to reality, did not receive job training (control). 
+Our target parameter is the Average Treatment Effect (ATE), defined under counterfactual outcomes as $\mathbb{E}[Y^{a=1} - Y^{a=0}|Black=1]$. This represents the difference in expected 1978 earnings among Black people where $Y^{1}|Black=1$ is the counterfactual outcome if one, perhaps contrary to reality, was assigned job training through NSW and $Y^{0}|Black=1$ is the counterfactual outcome if one, perhaps contrary to reality, did not get assigned job training (control). 
 
-To identify the causal ATE from our observational data, we must meet three assumptions: 
+Since treatment was randomly assigned, marginal exchangeability holds by design $Y^a \perp A$. We still require consistency and positivity: 
 
 \begin{itemize}
 
 \item Consistency: An individual's observed outcome $Y$ when they receive treatment $A=a$ is equal to their counterfactual outcome $Y^a$.
 
-\item Marginal Exchangeability: $Y^a \perp A$. All common causes of the job training assignment and 1978 earnings are controlled for by random treatment assignment.
-
-\item Positivity: $0 < p(A=1 \mid W) < 1$ for observed strata $W$. Every individual must have a non-zero probability of receiving or not receiving the training. 
+\item Positivity: $0 < p(A=1 \mid W) < 1$ for observed strata $W$. Every individual must have a non-zero probability of being assigned or not assigned to the training. 
 
 \end{itemize}
 
@@ -93,7 +91,7 @@ Consider $E[Y^1|Black=1]$:
 
 \begin{itemize}
 
-\item $=E[Y^1|A = 1,Black =1]]$ (by marginal exchangeability, $Y^a \perp A$) 
+\item $= E[Y^1|A = 1,Black =1]]$ (by marginal exchangeability, $Y^a \perp A$) 
 \item $= E[Y|A = 1,Black =1]]$ (by consistency)
 
 \end{itemize}
