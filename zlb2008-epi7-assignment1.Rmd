@@ -36,7 +36,7 @@ National Supported Work (NSW) Demonstration was a subsidized job training progra
 
 # Research Question
 
-We are interested in knowing to what extent participation in the NSW Demonstration program affects future income among Black participants. In causal phrasing: if, perhaps contrary to reality, all eligible Black individuals received the NSW Demonstration training program, what would their expected real earnings in 1978 be compared to if, perhaps contrary to reality, none of them received the program?
+We are interested in knowing to what extent participation in the NSW Demonstration program affects future income among Black participants. In causal phrasing: if, perhaps contrary to reality, all eligible Black individuals were assigned to the NSW Demonstration training program, what would their expected real earnings in 1978 be compared to if, perhaps contrary to reality, none of them were assigned to the program?
 
 # Data 
 To answer this question, we observe the data structure $O=(W,A,Y)$ for $n$ independent and identically distributed individuals.
@@ -45,7 +45,7 @@ To answer this question, we observe the data structure $O=(W,A,Y)$ for $n$ indep
 
 \item $W$ is a set of 6 baseline covariates that could confound the effect of $A$ on $Y$: age, years of education, marital status, absence of a high school degree, and real earnings in 1974 and 1975. 
 
-\item $A \in \{0,1\}$ is the binary intervention. $A=1$ if the individual received the job training, and $A=0$ otherwise.
+\item $A \in \{0,1\}$ is the binary intervention. $A=1$ if the individual was assigned the job training, and $A=0$ otherwise.
 
 \item $Y$ is the continuous outcome of interest: real earnings in 1978.
 
@@ -88,17 +88,16 @@ To identify the causal ATE from our observational data, we must meet three assum
 
 \end{itemize}
 
-Consider $E[Y^1]$:
+Consider $E[Y^1|Black=1]$:
 
 \begin{itemize}
 
-\item $E[Y^1|Black=1] = E[E[Y^1|Black=1]]$ (by the law of iterated expectations)
-\item $=E[E[Y^1|A = 1,Black =1]]$ (by marginal exchangeability, $Y^a \perp A$) 
-\item $= E[E[Y|A = 1,Black =1]]$ (by consistency)
+\item $=E[Y^1|A = 1,Black =1]]$ (by marginal exchangeability, $Y^a \perp A$) 
+\item $= E[Y|A = 1,Black =1]]$ (by consistency)
 
 \end{itemize}
 
-We can replace the 1's with 0's to find $E[Y^0|Black=1]$. Thus, the causal ATE is identified by the statistical estimand: $$\hat{ATE} = \mathbb{E}[\mathbb{E}[Y \mid A=1, Black = 1] - \mathbb{E}[Y \mid A=0, Black = 1]]$$
+We can replace the 1's with 0's to find $E[Y^0|Black=1]$. Thus, the causal ATE is identified by the statistical estimand: $$\hat{ATE} = \mathbb{E}[Y \mid A=1, Black = 1] - \mathbb{E}[Y \mid A=0, Black = 1]]$$
 
 # Estimating the Average Treatment Effect
 
