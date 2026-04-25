@@ -105,7 +105,9 @@ We apply three estimators discussed in class to determine estimate the statistic
 
 ```{r warning=FALSE, message=FALSE, results='hide'}
 # Fit the outcome model predicting Y from A and W
-gcomp_model <- glm(re78 ~ treatment + age + education + married + nodegree + re74 + re75, data = lalonde, family = gaussian())
+gcomp_model <- glm(re78 ~ treatment + age + education
+                   + married + nodegree + re74 + re75,
+                   data = lalonde, family = gaussian())
 
 # Create two counterfactual datasets
 data_A1 <- lalonde
@@ -115,8 +117,8 @@ data_A0 <- lalonde
 data_A0$treatment <- 0 # All untreated
 
 # Predict the counterfactual outcomes
-QAW_1 <- predict(gcomp_model, newdata = data_A1, type = "response") # All treated counterfactual outcome
-QAW_0 <- predict(gcomp_model, newdata = data_A0, type = "response") # All untreated counterfactual outcome
+QAW_1 <- predict(gcomp_model, newdata = data_A1, type = "response") 
+QAW_0 <- predict(gcomp_model, newdata = data_A0, type = "response") 
 
 # Calculate the ATE 
 ate_gcomp <- mean(QAW_1 - QAW_0) # ATE
@@ -217,8 +219,9 @@ results_df <- data.frame(
 
 ```{r}
 # Output as a table for readability
-kable(results_df, format = "latex", digits = 2, caption = "ATE Estimates on LaLonde Data") %>%
-  kable_styling(bootstrap_options = c("striped", "hold_position"))
+kable(results_df, format = "latex", digits = 2, 
+      caption = "ATE Estimates on LaLonde   Data") |>
+      kable_styling(bootstrap_options = c("striped", "hold_position"))
 ```
 
 G-computation estimates an $\hat{ATE}$ of \$1371.454 (95% CI: -281.69, 3024.59),
